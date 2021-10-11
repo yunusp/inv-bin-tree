@@ -32,6 +32,7 @@ fn generate_tree(level: usize, counter: &mut i32) -> Noderef<i32> {
     }
 }
 
+#[allow(dead_code)]
 fn gen_tree_norec(level: usize) -> Noderef<i32> {
     let mut counter = 1;
     let mut arg_stack = Vec::<Action<usize, i32>>::new();
@@ -46,18 +47,14 @@ fn gen_tree_norec(level: usize) -> Noderef<i32> {
                     arg_stack.push(Action::Handle(counter));
                     arg_stack.push(Action::Call(level - 1));
                     arg_stack.push(Action::Call(level - 1));
-                }else {
+                } else {
                     ret_stack.push(None);
                 }
             }
             Action::Handle(value) => {
                 let left = ret_stack.pop().unwrap();
                 let right = ret_stack.pop().unwrap();
-                ret_stack.push(Some(Box::new(Node {
-                    value,
-                    right,
-                    left,
-                })));
+                ret_stack.push(Some(Box::new(Node { value, right, left })));
                 counter += 1;
             }
         }
@@ -77,6 +74,7 @@ fn invert_tree<T: Clone>(root: &Noderef<T>) -> Noderef<T> {
     }
 }
 
+#[allow(dead_code)]
 fn invert_tree_norec<T: Clone>(root: &Noderef<T>) -> Noderef<T> {
     let mut arg_stack = Vec::<Action<&Noderef<T>, &T>>::new();
     let mut ret_stack = Vec::<Noderef<T>>::new();
@@ -107,16 +105,31 @@ fn invert_tree_norec<T: Clone>(root: &Noderef<T>) -> Noderef<T> {
 }
 
 #[allow(dead_code)]
-fn visit_nodes<T: Display>(root: &Noderef<i32>) {
-    match root {
-        Some(node) => {
-            println!("{}", node.value);
-            visit_nodes::<i32>(&node.left);
-            visit_nodes::<i32>(&node.right);
-        }
-        None => {}
+fn visit_nodes_preorder<T: Display>(root: &Noderef<T>) {
+    if let Some(node) = root {
+        println!("{}", node.value);
+        visit_nodes_preorder(&node.left);
+        visit_nodes_preorder(&node.right);
     }
 }
+
+#[allow(dead_code)]
+fn visit_nodes_postorder<T: Display>(root: &Noderef<T>) {
+    if let Some(node) = root {
+        visit_nodes_postorder(&node.left);
+        visit_nodes_postorder(&node.right);
+        println!("{}", node.value);
+    }
+}
+
+#[allow(dead_code)]
+    fn visit_nodes_inorder<T: Display>(root: &Noderef<T>) {
+        if let Some(node) = root {
+            visit_nodes_postorder(&node.left);
+            println!("{}", node.value);
+            visit_nodes_postorder(&node.right);
+        }
+    }
 
 #[allow(dead_code)]
 fn print_tree(root: &Noderef<i32>, level: usize) {
@@ -157,8 +170,15 @@ fn print_tree_norec<T: Display>(root: &Noderef<T>) {
     }
 }
 fn main() {
-    let tree = gen_tree_norec(3);
-    print_tree_norec(&tree);
-    println!("-------------------");
-    print_tree_norec(&invert_tree_norec(&tree));
+    println!("tree");
+    let tree = generate_tree(3, &mut 0);
+    print_tree(&tree, 0);
+
+    println!("inorder");
+    visit_nodes_inorder(&tree);
+    println!("preorder");
+    visit_nodes_preorder(&tree);
+    println!("postorder");
+    visit_nodes_postorder(&tree);
+
 }
