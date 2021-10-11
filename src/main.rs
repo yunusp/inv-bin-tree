@@ -123,13 +123,34 @@ fn visit_nodes_postorder<T: Display>(root: &Noderef<T>) {
 }
 
 #[allow(dead_code)]
-    fn visit_nodes_inorder<T: Display>(root: &Noderef<T>) {
-        if let Some(node) = root {
-            visit_nodes_postorder(&node.left);
-            println!("{}", node.value);
-            visit_nodes_postorder(&node.right);
+fn visit_nodes_inorder<T: Display>(root: &Noderef<T>) {
+    if let Some(node) = root {
+        visit_nodes_inorder(&node.left);
+        println!("{}", node.value);
+        visit_nodes_inorder(&node.right);
+    }
+}
+
+fn visit_nodes_inorder_norec<T: Display>(root: &Noderef<T>) {
+    let mut stack = Vec::<Action<&Noderef<T>, &T>>::new();
+    stack.push(Action::Call(root));
+    while let Some(action) = stack.pop() {
+        match action {
+            Action::Call(root) => {
+                if let Some(node) = root {
+                    //reverse the order because stack
+                    stack.push(Action::Call(&node.right));
+                    stack.push(Action::Handle(&node.value));
+                    stack.push(Action::Call(&node.left));
+                }
+            }
+
+            Action::Handle(value) => {
+                println!("{}", value);
+            }
         }
     }
+}
 
 #[allow(dead_code)]
 fn print_tree(root: &Noderef<i32>, level: usize) {
@@ -176,9 +197,6 @@ fn main() {
 
     println!("inorder");
     visit_nodes_inorder(&tree);
-    println!("preorder");
-    visit_nodes_preorder(&tree);
-    println!("postorder");
-    visit_nodes_postorder(&tree);
-
+    println!("-----------------");
+    visit_nodes_inorder_norec(&tree);
 }
