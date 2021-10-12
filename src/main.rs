@@ -114,11 +114,55 @@ fn visit_nodes_preorder<T: Display>(root: &Noderef<T>) {
 }
 
 #[allow(dead_code)]
+fn visit_nodes_preorder_norec<T: Display>(root: &Noderef<T>) {
+    let mut stack = Vec::<Action<&Noderef<T>, &T>>::new();
+    stack.push(Action::Call(root));
+    while let Some(action) = stack.pop() {
+        match action {
+            Action::Call(root) => {
+                if let Some(node) = root {
+                    //reverse the order because stack
+                    stack.push(Action::Call(&node.right));
+                    stack.push(Action::Call(&node.left));
+                    stack.push(Action::Handle(&node.value));
+                }
+            }
+
+            Action::Handle(value) => {
+                println!("{}", value);
+            }
+        }
+    }
+}
+
+#[allow(dead_code)]
 fn visit_nodes_postorder<T: Display>(root: &Noderef<T>) {
     if let Some(node) = root {
         visit_nodes_postorder(&node.left);
         visit_nodes_postorder(&node.right);
         println!("{}", node.value);
+    }
+}
+
+#[allow(dead_code)]
+fn visit_nodes_postorder_norec<T: Display>(root: &Noderef<T>) {
+    let mut stack = Vec::<Action<&Noderef<T>, &T>>::new();
+    stack.push(Action::Call(root));
+    while let Some(action) = stack.pop() {
+        match action {
+            Action::Call(root) => {
+                if let Some(node) = root {
+                    //reverse the order because stack
+                    stack.push(Action::Handle(&node.value));
+                    stack.push(Action::Call(&node.right));
+                    stack.push(Action::Call(&node.left));
+                }
+            }
+
+            Action::Handle(value) => {
+                println!("{}", value);
+            }
+        }
     }
 }
 
@@ -131,6 +175,7 @@ fn visit_nodes_inorder<T: Display>(root: &Noderef<T>) {
     }
 }
 
+#[allow(dead_code)]
 fn visit_nodes_inorder_norec<T: Display>(root: &Noderef<T>) {
     let mut stack = Vec::<Action<&Noderef<T>, &T>>::new();
     stack.push(Action::Call(root));
@@ -196,7 +241,7 @@ fn main() {
     print_tree(&tree, 0);
 
     println!("inorder");
-    visit_nodes_inorder(&tree);
+    visit_nodes_preorder(&tree);
     println!("-----------------");
-    visit_nodes_inorder_norec(&tree);
+    visit_nodes_preorder_norec(&tree);
 }
