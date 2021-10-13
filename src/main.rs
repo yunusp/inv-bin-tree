@@ -1,3 +1,10 @@
+/*
+ret_stack patterns simulate the stack of return values that
+the function calls unwrap onto.
+arg_stack patters simulate the stack of function calls that unwrap
+
+we maintain the call stack manually thus no recursion needed
+*/
 use std::fmt::Display;
 
 type Noderef<T> = Option<Box<Node<T>>>;
@@ -8,6 +15,13 @@ struct Node<T> {
     right: Noderef<T>,
     left: Noderef<T>,
 }
+///# Call stack
+/// this emulates the call stack.
+/// ### ```Call<T>```
+/// simlulates a recusrsive call
+/// ### ```Handle<U>```
+/// simulates other stuff thats not the recursive call
+#[derive(Debug)]
 enum Action<T, U> {
     Call(T),
     Handle(U),
@@ -25,9 +39,9 @@ fn generate_tree(level: usize, counter: &mut i32) -> Noderef<i32> {
         };
         node.value = *counter;
         *counter += 1;
-        node.left = generate_tree(level - 1, counter);
-        //the counter stays updates becuause its borrowed
         node.right = generate_tree(level - 1, counter);
+        //the counter stays updates becuause its borrowed
+        node.left = generate_tree(level - 1, counter);
         Some(Box::new(node))
     }
 }
@@ -45,6 +59,7 @@ fn gen_tree_norec(level: usize) -> Noderef<i32> {
             Action::Call(level) => {
                 if level > 0 {
                     arg_stack.push(Action::Handle(counter));
+                    counter += 1;
                     arg_stack.push(Action::Call(level - 1));
                     arg_stack.push(Action::Call(level - 1));
                 } else {
@@ -55,7 +70,6 @@ fn gen_tree_norec(level: usize) -> Noderef<i32> {
                 let left = ret_stack.pop().unwrap();
                 let right = ret_stack.pop().unwrap();
                 ret_stack.push(Some(Box::new(Node { value, right, left })));
-                counter += 1;
             }
         }
     }
@@ -235,13 +249,41 @@ fn print_tree_norec<T: Display>(root: &Noderef<T>) {
         }
     }
 }
-fn main() {
-    println!("tree");
-    let tree = generate_tree(3, &mut 0);
-    print_tree(&tree, 0);
 
-    println!("inorder");
-    visit_nodes_preorder(&tree);
-    println!("-----------------");
-    visit_nodes_preorder_norec(&tree);
+//proof of concept function really doesnt fit here
+//but does show that "ANY" recursive function can
+//be made non recursive
+#[allow(dead_code)]
+fn fact_norec(num: u128) -> u128 {
+    let mut current_num = num;
+    let mut arg_stack: Vec<Action<u128, u128>> = Vec::new();
+    let mut ret_stack: Vec<u128> = Vec::new();
+    arg_stack.push(Action::Call(num));
+    while let Some(action) = arg_stack.pop() {
+        match action {
+            Action::Call(n) => {
+                if n == 0 {
+                    ret_stack.push(1);
+                } else {
+                    arg_stack.push(Action::Handle(current_num));
+                    current_num -= 1;
+                    arg_stack.push(Action::Call(n - 1));
+
+                }
+            }
+            Action::Handle(n) => {
+                let prev_res = ret_stack.pop().unwrap() ;
+                ret_stack.push((prev_res as u128) * n);
+            }
+        }
+    }
+    ret_stack.pop().unwrap()
+}
+
+fn main() {
+    // let tree = generate_tree(3,&mut 1);
+    let tree1 = gen_tree_norec(20);
+    // print_tree(&tree1, 0);
+    visit_nodes_inorder_norec(&tree1);
+    // println!("{}", fact_norec(30));
 }
