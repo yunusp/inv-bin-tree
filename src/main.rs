@@ -255,7 +255,7 @@ fn print_tree_norec<T: Display>(root: &Noderef<T>) {
 //be made non recursive
 #[allow(dead_code)]
 fn fact_norec(num: u128) -> u128 {
-    let mut current_num = num;
+    let mut current_num = num; //probably not needed but i cannot be bothered
     let mut arg_stack: Vec<Action<u128, u128>> = Vec::new();
     let mut ret_stack: Vec<u128> = Vec::new();
     arg_stack.push(Action::Call(num));
@@ -265,6 +265,7 @@ fn fact_norec(num: u128) -> u128 {
                 if n == 0 {
                     ret_stack.push(1);
                 } else {
+                    //note that the order here is reversed as its a stack so FIFO
                     arg_stack.push(Action::Handle(current_num));
                     current_num -= 1;
                     arg_stack.push(Action::Call(n - 1));
