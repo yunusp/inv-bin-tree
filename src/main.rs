@@ -1,7 +1,7 @@
 /*
 ret_stack patterns simulate the stack of return values that
 the function calls unwrap onto.
-arg_stack patters simulate the stack of function calls that unwrap
+arg_stack patterns simulate the stack of function calls that unwrap
 
 we maintain the call stack manually thus no recursion needed
 */
